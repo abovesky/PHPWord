@@ -18,7 +18,7 @@ class Math extends AbstractElement
     public static function mmlToTex($source){
         libxml_disable_entity_loader(false);
         $xslDoc = new \DOMDocument();
-        $xslDoc->load(dirname(__FILE__)."/mmltex.xsl");
+        $xslDoc->load(dirname(__FILE__)."/xsltml/mmltex.xsl");
         $xmlDoc = new \DOMDocument();
         $xmlDoc->loadXML($source);
         $proc = new \XSLTProcessor();
