@@ -203,6 +203,7 @@ abstract class AbstractPart
     }
 
     protected function ommlToMML(\DOMElement $domNode){
+        libxml_disable_entity_loader(false);
         $xslDoc = new \DOMDocument();
         $xslDoc->load(dirname(__FILE__)."/OMML2MML.XSL");
 
