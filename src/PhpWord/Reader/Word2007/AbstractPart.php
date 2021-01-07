@@ -22,6 +22,7 @@ use PhpOffice\PhpWord\ComplexType\TblWidth as TblWidthComplexType;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 use PhpOffice\PhpWord\Element\TextRun;
 use PhpOffice\PhpWord\Element\TrackChange;
+use PhpOffice\PhpWord\Element\Math;
 use PhpOffice\PhpWord\PhpWord;
 
 /**
@@ -148,6 +149,8 @@ abstract class AbstractPart
             foreach ($nodes as $node) {
                 $this->readRun($xmlReader, $node, $listItemRun, $docPart, $paragraphStyle);
             }
+        } elseif ($xmlReader->elementExists('m:oMathPara', $domNode)) {
+            $this->readMath($xmlReader, $domNode, $parent, $docPart, $paragraphStyle);
         } elseif ($headingDepth !== null) {
             // Heading or Title
             $textContent = null;
@@ -199,6 +202,26 @@ abstract class AbstractPart
         return null;
     }
 
+    protected function ommlToMML(\DOMElement $domNode){
+        $xslDoc = new \DOMDocument();
+        $xslDoc->load(dirname(__FILE__)."/OMML2MML.XSL");
+
+        $xmlDoc = new \DOMDocument();
+        $newNode = $xmlDoc->importNode($domNode, true);
+        $xmlDoc->appendChild($newNode);
+        $xml=$newNode->ownerDocument->saveXml($newNode);
+
+        $proc = new \XSLTProcessor();
+        $proc->importStylesheet($xslDoc);
+        $mml =  $proc->transformToXML($xmlDoc);
+        return $mml;
+    }
+
+    protected function readMath(XMLReader $xmlReader, \DOMElement $domNode, $parent, $docPart, $paragraphStyle = null){
+        $source = $this->ommlToMML($domNode);
+        return $parent->addMath($source);
+    }
+
     /**
      * Read w:r.
      *
@@ -223,6 +246,8 @@ abstract class AbstractPart
             foreach ($nodes as $node) {
                 $this->readRunChild($xmlReader, $node, $parent, $docPart, $paragraphStyle, $fontStyle);
             }
+        } elseif ($domNode->nodeName == 'm:oMath') {
+            $this->readMath($xmlReader, $domNode, $parent, $docPart, $paragraphStyle);
         }
     }
 
